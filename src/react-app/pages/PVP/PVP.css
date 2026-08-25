@@ -509,6 +509,92 @@ button.bomb-active {
 	border-color: var(--accent);
 }
 
+/* ---------- 回合反馈 ---------- */
+
+.turn-banner {
+	position: relative;
+	overflow: hidden;
+	text-align: center;
+	margin: 0 0 14px;
+	padding: 12px 16px;
+	border-radius: 12px;
+	font-weight: 800;
+	font-size: 1rem;
+	transition: all 0.3s ease;
+}
+
+.turn-banner.your-turn {
+	background: var(--accent);
+	color: #fff;
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	box-shadow: 0 8px 24px rgba(47, 111, 237, 0.45);
+}
+
+/* 流光扫过 */
+.turn-banner.your-turn::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -120%;
+	width: 55%;
+	height: 100%;
+	background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+	transform: skewX(-20deg);
+	animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+	0% {
+		left: -120%;
+	}
+	100% {
+		left: 165%;
+	}
+}
+
+.turn-banner.opponent-turn {
+	background: #fff;
+	color: var(--ink-soft);
+	border: 1px solid var(--line);
+	box-shadow: none;
+}
+
+.board-enemy.active {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.16), 0 10px 30px rgba(31, 42, 68, 0.1);
+}
+
+.board-enemy.inactive {
+	opacity: 0.85;
+}
+
+.turn-toast {
+	position: fixed;
+	top: 18px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 999;
+	padding: 12px 24px;
+	border-radius: 999px;
+	background: var(--accent);
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.95rem;
+	box-shadow: 0 12px 32px rgba(47, 111, 237, 0.4);
+	animation: toastIn 0.35s ease;
+}
+
+@keyframes toastIn {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -14px);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, 0);
+	}
+}
+
 /* ---------- 结束 ---------- */
 
 .game-over {

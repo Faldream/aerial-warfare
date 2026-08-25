@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AIRPLANE_TYPES,
@@ -42,6 +42,8 @@ export default function PVP() {
   const [currentType, setCurrentType] = useState<ShipTypeName>("large");
   const [rotation, setRotation] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [turnToast, setTurnToast] = useState("");
+  const prevTurn = useRef<string | null>(null);
 
   // 从 URL ?room= 恢复会话
   useEffect(() => {
@@ -81,6 +83,22 @@ export default function PVP() {
       clearInterval(timer);
     };
   }, [inGame, roomId, playerId]);
+
+  // 回合切换提示
+  useEffect(() => {
+    if (!view || !view.gameStarted) {
+      prevTurn.current = null;
+      return;
+    }
+    const turn = view.currentTurn ?? null;
+    const changed = prevTurn.current !== null && prevTurn.current !== turn;
+    prevTurn.current = turn;
+    if (changed && turn === view.side) {
+      setTurnToast("⚔️ 轮到你了！");
+      const id = setTimeout(() => setTurnToast(""), 1500);
+      return () => clearTimeout(id);
+    }
+  }, [view]);
 
   const createRoom = async () => {
     setLoading(true);
@@ -192,8 +210,13 @@ export default function PVP() {
       setError("还没轮到你");
       return;
     }
-    // 已攻击过的格子不重复发送
-    if (view.enemyBoard[r][c] !== "") {
+    // 已命中/未命中/击毁格不可再点；炸弹揭示的 R 格可被攻击（但炸弹不能再打它）
+    const cellVal = view.enemyBoard[r][c];
+    if (cellVal === "X" || cellVal === "O" || cellVal === "*") {
+      setError("");
+      return;
+    }
+    if (bombMode && cellVal === "R") {
       setError("");
       return;
     }
@@ -253,7 +276,8 @@ export default function PVP() {
                   cls.push("reveal");
                   content = "◆";
                 }
-                const clickable = onCell !== undefined && (!onlyEmpty || val === "");
+                const clickable =
+                  onCell !== undefined && (!onlyEmpty || val === "" || val === "R");
                 if (clickable) cls.push("clickable");
                 const onClick = clickable ? () => onCell!(i, j) : undefined;
                 return (
@@ -280,6 +304,8 @@ export default function PVP() {
     }
   };
 
+  const isYourTurn = !!view && view.gameStarted && !view.gameOver && view.currentTurn === view.side;
+
   return (
     <div className="pvp-page">
       <header className="pvp-header">
@@ -301,9 +327,9 @@ export default function PVP() {
             </Link>
           )}
         </div>
-        {inGame && view && (
+        {inGame && view && !(view.gameStarted && !view.gameOver) && (
           <div className="status">
-            {view.gameOver ? "游戏结束" : view.gameStarted ? `当前回合：${view.currentTurn === view.side ? "你" : view.opponentName}` : "布置阶段"}
+            {view.gameOver ? "游戏结束" : "布置阶段"}
           </div>
         )}
       </header>
@@ -446,6 +472,9 @@ export default function PVP() {
           {/* 战斗阶段 */}
           {view.gameStarted && (
             <div className="battle-panel">
+              <div className={`turn-banner ${isYourTurn ? "your-turn" : "opponent-turn"}`}>
+                {isYourTurn ? "你的回合 · 点击敌方棋盘攻击" : `等待 ${view.opponentName} 行动…`}
+              </div>
               <div className="battle-info">
                 <div className="info-item">
                   <span className="info-label">回合</span>
@@ -465,11 +494,9 @@ export default function PVP() {
                 </div>
               </div>
 
-              <div className="battle-note">
-                {bombMode
-                  ? "炸弹瞄准中：点击敌方棋盘使用炸弹"
-                  : "点击敌方棋盘进行攻击"}
-              </div>
+              {bombMode && (
+                <div className="battle-note">炸弹瞄准中：点击敌方棋盘使用炸弹</div>
+              )}
 
               <div className="game-container">
                 <div className="board-container">
@@ -478,7 +505,7 @@ export default function PVP() {
                   <div className="board-note">对方命中你的飞机时会显示在这里</div>
                 </div>
 
-                <div className="board-container board-enemy">
+                <div className={`board-container board-enemy ${isYourTurn ? "active" : "inactive"}`}>
                   <div className="board-enemy-head">
                     <div className="header">敌方棋盘</div>
                     <button
@@ -537,6 +564,8 @@ export default function PVP() {
       )}
 
       {inGame && !view && <div className="loading">正在连接服务器…</div>}
+
+      {turnToast && <div className="turn-toast">{turnToast}</div>}
     </div>
   );
 }
