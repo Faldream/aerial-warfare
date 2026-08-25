@@ -14,7 +14,7 @@
 		]
 	},
 	"migrations": [
-		{ "tag": "v1", "new_classes": ["PVPGameRoom"] }
+		{ "tag": "v1", "new_sqlite_classes": ["PVPGameRoom"] }
 	],
 	"assets": {
 		"directory": "./dist/client",
