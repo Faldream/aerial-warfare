@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AIRPLANE_TYPES,
@@ -42,8 +42,6 @@ export default function PVP() {
   const [currentType, setCurrentType] = useState<ShipTypeName>("large");
   const [rotation, setRotation] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [turnToast, setTurnToast] = useState("");
-  const prevTurn = useRef<string | null>(null);
 
   // 从 URL ?room= 恢复会话
   useEffect(() => {
@@ -83,22 +81,6 @@ export default function PVP() {
       clearInterval(timer);
     };
   }, [inGame, roomId, playerId]);
-
-  // 回合切换提示
-  useEffect(() => {
-    if (!view || !view.gameStarted) {
-      prevTurn.current = null;
-      return;
-    }
-    const turn = view.currentTurn ?? null;
-    const changed = prevTurn.current !== null && prevTurn.current !== turn;
-    prevTurn.current = turn;
-    if (changed && turn === view.side) {
-      setTurnToast("⚔️ 轮到你了！");
-      const id = setTimeout(() => setTurnToast(""), 1500);
-      return () => clearTimeout(id);
-    }
-  }, [view]);
 
   const createRoom = async () => {
     setLoading(true);
@@ -564,8 +546,6 @@ export default function PVP() {
       )}
 
       {inGame && !view && <div className="loading">正在连接服务器…</div>}
-
-      {turnToast && <div className="turn-toast">{turnToast}</div>}
     </div>
   );
 }
