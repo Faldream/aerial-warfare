@@ -8,6 +8,14 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"durable_objects": {
+		"bindings": [
+			{ "name": "PVP_ROOMS", "class_name": "PVPGameRoom" }
+		]
+	},
+	"migrations": [
+		{ "tag": "v1", "new_classes": ["PVPGameRoom"] }
+	],
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"

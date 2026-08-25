@@ -1,0 +1,414 @@
+/* ============ 空战棋 介绍 · 亮色 + 网格说明 ============ */
+
+.intro-page {
+	--accent: #2f6fed;
+	--accent-dark: #1e4fbf;
+	--card: #ffffff;
+	--line: #e2e8f2;
+	--ink: #1f2a44;
+	--ink-soft: #5b6b84;
+	--cell: clamp(18px, 4vw, 28px);
+
+	min-height: 100vh;
+	width: 100%;
+	box-sizing: border-box;
+	padding: 40px clamp(14px, 4vw, 40px) 60px;
+	color: var(--ink);
+	background:
+		repeating-linear-gradient(45deg, rgba(47, 111, 237, 0.05) 0 1px, transparent 1px 26px),
+		repeating-linear-gradient(-45deg, rgba(47, 111, 237, 0.05) 0 1px, transparent 1px 26px),
+		linear-gradient(180deg, #f5f8fd 0%, #e6edf8 100%);
+}
+
+.intro-inner {
+	max-width: 960px;
+	margin: 0 auto;
+}
+
+/* ---------- 头部 ---------- */
+
+.intro-header {
+	text-align: center;
+	margin-bottom: 34px;
+}
+
+.intro-emblem {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 8px;
+	filter: drop-shadow(0 8px 18px rgba(47, 111, 237, 0.3));
+}
+
+.intro-emblem svg {
+	width: clamp(56px, 8vw, 84px);
+	height: clamp(56px, 8vw, 84px);
+	color: var(--accent);
+}
+
+.intro-header h1 {
+	margin: 0;
+	font-size: clamp(2rem, 5vw, 2.8rem);
+	font-weight: 800;
+	color: var(--ink);
+}
+
+.intro-subtitle {
+	color: var(--accent-dark);
+	letter-spacing: 0.12em;
+	margin-top: 8px;
+	font-weight: 600;
+}
+
+/* ---------- 栏目 ---------- */
+
+.intro-section {
+	margin-bottom: 36px;
+}
+
+.intro-section-title {
+	font-size: 1.4rem;
+	font-weight: 800;
+	margin: 0 0 6px;
+	color: var(--ink);
+}
+
+.intro-section-desc {
+	color: var(--ink-soft);
+	line-height: 1.8;
+	margin: 0 0 20px;
+}
+
+/* ---------- 飞机形状 ---------- */
+
+.plane-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 20px;
+}
+
+.plane-card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	padding: 18px;
+	box-shadow: 0 8px 24px rgba(31, 42, 68, 0.06);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+}
+
+.shape-grid {
+	display: grid;
+	gap: 3px;
+}
+
+.shape-cell {
+	width: var(--cell);
+	height: var(--cell);
+	border-radius: 6px;
+	border: 1px solid var(--line);
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 0.85rem;
+	color: #fff;
+}
+
+.shape-cell.ship {
+	background: #b9c4d6;
+}
+
+.shape-cell.head {
+	background: #ff6b6b;
+}
+
+.plane-card-info {
+	text-align: center;
+}
+
+.plane-card-info h3 {
+	margin: 0 0 6px;
+	font-size: 1.15rem;
+	color: var(--ink);
+}
+
+.plane-card-info p {
+	margin: 0 0 12px;
+	color: var(--ink-soft);
+	line-height: 1.7;
+	font-size: 0.92rem;
+}
+
+.plane-note {
+	display: inline-block;
+	padding: 3px 12px;
+	border-radius: 999px;
+	font-size: 0.76rem;
+	font-weight: 700;
+	color: var(--accent-dark);
+	background: #eaf1ff;
+	border: 1px solid #d7e4ff;
+}
+
+.plane-note.decoy {
+	color: #7a4a00;
+	background: #fff4d6;
+	border-color: #ffd166;
+}
+
+/* ---------- 玩法演示 ---------- */
+
+.gameplay {
+	display: flex;
+	gap: 28px;
+	align-items: flex-start;
+	flex-wrap: wrap;
+}
+
+.demo-board {
+	flex: 1;
+	min-width: 320px;
+	max-width: 520px;
+	margin: 0 auto;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	padding: 18px;
+	box-shadow: 0 10px 30px rgba(31, 42, 68, 0.08);
+	--cell: clamp(26px, calc((100vw - 200px) / 9), 40px);
+}
+
+.demo-title {
+	text-align: center;
+	font-weight: 800;
+	margin-bottom: 14px;
+	color: var(--ink);
+}
+
+.demo-grid {
+	display: grid;
+	gap: 3px;
+	margin: 0 auto;
+	width: fit-content;
+}
+
+.demo-cell {
+	width: var(--cell);
+	height: var(--cell);
+	border-radius: 6px;
+	border: 1px solid #e6ecf4;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 0.9rem;
+	color: #fff;
+}
+
+.demo-cell.hit {
+	background: #ff6b6b;
+}
+
+.demo-cell.miss {
+	background: #d8e0ec;
+	color: #7a879c;
+}
+
+.demo-cell.head {
+	background: #ff4d4d;
+}
+
+.demo-cell.reveal {
+	background: #ffd166;
+	color: #7a4a00;
+}
+
+.demo-legend {
+	display: flex;
+	justify-content: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 14px;
+}
+
+.lg {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--ink-soft);
+}
+
+.chip {
+	width: 14px;
+	height: 14px;
+	border-radius: 4px;
+	display: inline-block;
+}
+
+.chip-hit {
+	background: #ff6b6b;
+}
+
+.chip-miss {
+	background: #d8e0ec;
+}
+
+.chip-reveal {
+	background: #ffd166;
+}
+
+.chip-head {
+	background: #ff4d4d;
+}
+
+.gameplay-text {
+	flex: 1;
+	min-width: 260px;
+}
+
+.gameplay-text ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.gameplay-text li {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 12px 16px;
+	color: var(--ink-soft);
+	line-height: 1.7;
+	font-size: 0.95rem;
+}
+
+.gameplay-text b {
+	color: var(--ink);
+}
+
+.gameplay-text mark {
+	background: #eaf1ff;
+	color: var(--accent-dark);
+	padding: 1px 6px;
+	border-radius: 6px;
+	font-weight: 700;
+}
+
+/* ---------- 流程 ---------- */
+
+.intro-rules {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.intro-rule {
+	display: flex;
+	gap: 18px;
+	align-items: flex-start;
+	padding: 20px 22px;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	box-shadow: 0 6px 20px rgba(31, 42, 68, 0.05);
+}
+
+.intro-rule-step {
+	flex-shrink: 0;
+	width: 52px;
+	height: 52px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 12px;
+	background: var(--accent);
+	color: #fff;
+	font-size: 1.2rem;
+	font-weight: 800;
+}
+
+.intro-rule-body h3 {
+	margin: 0 0 6px;
+	font-size: 1.15rem;
+	color: var(--ink);
+}
+
+.intro-rule-body p {
+	margin: 0;
+	color: var(--ink-soft);
+	line-height: 1.7;
+}
+
+/* ---------- 小贴士 ---------- */
+
+.intro-tips {
+	padding: 22px 24px;
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	margin-bottom: 36px;
+}
+
+.intro-tips h2 {
+	margin: 0 0 12px;
+	color: var(--ink);
+	font-size: 1.2rem;
+}
+
+.intro-tips ul {
+	margin: 0;
+	padding-left: 20px;
+	color: var(--ink-soft);
+	line-height: 1.9;
+}
+
+/* ---------- 返回 ---------- */
+
+.intro-back {
+	display: block;
+	text-align: center;
+	max-width: 220px;
+	margin: 0 auto;
+	padding: 12px 24px;
+	border-radius: 999px;
+	background: var(--accent);
+	color: #fff;
+	text-decoration: none;
+	font-weight: 600;
+	box-shadow: 0 8px 20px rgba(47, 111, 237, 0.3);
+	transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.intro-back:hover {
+	background: var(--accent-dark);
+	transform: translateY(-2px);
+}
+
+/* ---------- 移动端 ---------- */
+
+@media (max-width: 760px) {
+	.intro-page {
+		padding: 28px 14px 40px;
+	}
+
+	.demo-board {
+		min-width: 100%;
+		width: 100%;
+		--cell: clamp(22px, calc((100vw - 90px) / 9), 32px);
+	}
+
+	.gameplay {
+		gap: 20px;
+	}
+}
+

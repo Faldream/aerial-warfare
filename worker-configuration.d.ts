@@ -6,6 +6,7 @@ declare namespace Cloudflare {
 		mainModule: typeof import("./src/worker/index");
 	}
 	interface Env {
+		PVP_ROOMS: DurableObjectNamespace<import("./src/worker/index").PVPGameRoom>;
 	}
 }
 interface Env extends Cloudflare.Env {}

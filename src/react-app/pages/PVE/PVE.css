@@ -1,0 +1,594 @@
+/* ============ 空战棋 PVE · 亮色简洁响应式 ============ */
+
+.container {
+	--cell: clamp(26px, calc((100vw - 250px) / 24), 42px);
+	--accent: #2f6fed;
+	--accent-dark: #1e4fbf;
+	--card-bg: #ffffff;
+	--line: #e2e8f2;
+	--ink: #1f2a44;
+	--ink-soft: #5b6b84;
+
+	min-height: 100vh;
+	background: linear-gradient(180deg, #f2f6fc 0%, #e7eef8 100%);
+	color: var(--ink);
+	padding: 16px clamp(12px, 4vw, 44px) 48px;
+}
+
+/* ---------- 头部 ---------- */
+
+.pve-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.top-bar {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.pve-header h1 {
+	font-size: 1.7rem;
+	font-weight: 800;
+	color: var(--ink);
+	margin: 0;
+	letter-spacing: 0.02em;
+}
+
+.back-btn {
+	display: inline-block;
+	padding: 7px 14px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: var(--accent);
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+	text-decoration: none;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+	border-color: var(--accent);
+	color: var(--accent-dark);
+	transform: translateY(-1px);
+}
+
+.status {
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--accent-dark);
+	background: #eaf1ff;
+	border: 1px solid #d7e4ff;
+	border-radius: 999px;
+	padding: 8px 16px;
+	max-width: 100%;
+}
+
+/* ---------- 阶段指示 ---------- */
+
+.game-phase {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin: 4px 0 14px;
+}
+
+.phase-indicator {
+	padding: 5px 14px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--ink-soft);
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 999px;
+}
+
+.phase-indicator.active {
+	color: #fff;
+	background: var(--accent);
+	border-color: var(--accent);
+	box-shadow: 0 4px 12px rgba(47, 111, 237, 0.25);
+}
+
+/* ---------- 工具栏 & 设置 ---------- */
+
+.controls {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin: 0 0 14px;
+}
+
+button {
+	padding: 8px 16px;
+	font-size: 0.88rem;
+	font-weight: 600;
+	color: var(--ink);
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	box-shadow: 0 1px 2px rgba(31, 42, 68, 0.05);
+}
+
+button:hover {
+	border-color: var(--accent);
+	color: var(--accent-dark);
+	transform: translateY(-1px);
+}
+
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.settings-card {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 14px 24px;
+	padding: 14px 18px;
+	margin: 0 auto 18px;
+	max-width: 820px;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	box-shadow: 0 2px 8px rgba(31, 42, 68, 0.05);
+}
+
+.settings-card .settings-title {
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: var(--ink-soft);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.first-move-item,
+.ship-config-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.first-move-item label,
+.ship-config-item label {
+	font-size: 0.85rem;
+	color: var(--ink-soft);
+}
+
+.first-move-item select,
+.ship-config-item input {
+	padding: 6px 8px;
+	font-size: 0.85rem;
+	color: var(--ink);
+	background: #f7fafd;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+}
+
+.ship-config-item input {
+	width: 58px;
+	text-align: center;
+}
+
+/* ---------- 手动布置 ---------- */
+
+.placement-controls {
+	text-align: center;
+	margin: 0 0 16px;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+}
+
+.rotation-controls {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 8px;
+}
+
+.ship-info {
+	font-weight: 600;
+	color: var(--accent-dark);
+}
+
+/* ---------- 信息面板 ---------- */
+
+.game-info {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin: 0 0 18px;
+}
+
+.info-panel {
+	flex: 1;
+	min-width: 160px;
+	max-width: 260px;
+	padding: 12px 16px;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+}
+
+.info-panel h3 {
+	margin: 0 0 8px;
+	font-size: 0.85rem;
+	font-weight: 700;
+	color: var(--ink-soft);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.info-panel div {
+	font-size: 0.9rem;
+	color: var(--ink);
+	margin: 3px 0;
+}
+
+/* ---------- 棋盘（核心） ---------- */
+
+.game-container {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	gap: 22px;
+	margin: 0 0 18px;
+	flex-wrap: wrap;
+}
+
+.board-container {
+	padding: 14px;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: 16px;
+	box-shadow: 0 6px 24px rgba(31, 42, 68, 0.08);
+}
+
+.board-container .header {
+	font-size: 1rem;
+	font-weight: 700;
+	color: var(--ink);
+	margin-bottom: 10px;
+	text-align: center;
+}
+
+.board-note {
+	text-align: center;
+	margin-top: 10px;
+	font-size: 0.78rem;
+	color: var(--ink-soft);
+}
+
+.board {
+	border-collapse: collapse;
+	margin: 0 auto;
+}
+
+.header-cell {
+	width: var(--cell);
+	height: var(--cell);
+	font-size: 0.8rem;
+	font-weight: 700;
+	color: var(--ink-soft);
+	background: #eef3fa;
+	border: 1px solid #e2e8f2;
+	text-align: center;
+}
+
+.cell {
+	width: var(--cell);
+	height: var(--cell);
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: #fff;
+	border: 1px solid #e2e8f2;
+	background: #fff;
+	cursor: pointer;
+	text-align: center;
+	vertical-align: middle;
+	transition: background-color 0.15s ease, transform 0.1s ease;
+	position: relative;
+}
+
+.cell:hover {
+	background: #eef3fa;
+}
+
+.cell.hit {
+	background: #ff6b6b;
+}
+
+.cell.miss {
+	background: #d8e0ec;
+	color: #7a879c;
+}
+
+.cell.ship {
+	background: #b9c4d6;
+	color: #3f4a63;
+}
+
+.cell.head {
+	background: #ff6b6b;
+}
+
+.cell.reveal {
+	background: #ffd166;
+	color: #7a4a00;
+}
+
+/* 炸弹瞄准时按钮高亮 */
+button.bomb-active {
+	background: var(--accent);
+	color: #fff;
+	border-color: var(--accent);
+}
+
+.bomb-hint {
+	text-align: center;
+	margin: 0 0 14px;
+	padding: 8px 14px;
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #7a4a00;
+	background: #fff4d6;
+	border: 1px solid #ffd166;
+	border-radius: 10px;
+}
+
+/* 棋盘内炸弹按钮 */
+.board-enemy-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.board-enemy-head .header {
+	margin-bottom: 0;
+	text-align: left;
+}
+
+.bomb-btn {
+	display: inline-block;
+	padding: 6px 12px;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #7a4a00;
+	background: #fff4d6;
+	border: 1px solid #ffd166;
+	border-radius: 999px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.bomb-btn:hover {
+	border-color: #e3a700;
+	color: #5f3a00;
+	transform: translateY(-1px);
+}
+
+.bomb-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* 隐藏棋盘中飞机时的占位效果 */
+.cell.empty-tried {
+	background: #f4f7fb;
+}
+
+/* ---------- AI 调试 / 概率图 ---------- */
+
+.ai-debug {
+	max-width: 820px;
+	margin: 0 auto 18px;
+	padding: 16px 18px;
+	background: var(--card-bg);
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	font-size: 0.82rem;
+}
+
+.ai-debug h3 {
+	margin: 0 0 10px;
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: var(--ink);
+}
+
+.ai-debug-content {
+	margin-bottom: 12px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: 6px 14px;
+	color: var(--ink-soft);
+}
+
+.probability-map {
+	margin-top: 10px;
+	overflow: auto;
+	border-radius: 8px;
+}
+
+.probability-row {
+	display: flex;
+}
+
+.probability-cell {
+	width: 18px;
+	height: 18px;
+	font-size: 7px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.5);
+	position: relative;
+	flex: 0 0 auto;
+}
+
+.probability-value {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 6px;
+	color: #fff;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.probability-title {
+	text-align: center;
+	margin: 10px 0 5px;
+	font-weight: 700;
+	color: var(--ink-soft);
+	font-size: 0.8rem;
+}
+
+/* ---------- 图例 ---------- */
+
+.legend {
+	display: flex;
+	justify-content: center;
+	gap: 18px;
+	flex-wrap: wrap;
+	margin: 0 auto 18px;
+	padding: 10px 14px;
+	max-width: 720px;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	font-size: 0.82rem;
+	color: var(--ink-soft);
+}
+
+.legend-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.legend-color {
+	width: 16px;
+	height: 16px;
+	border-radius: 4px;
+	border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.legend-color.hit {
+	background: #ff6b6b;
+}
+
+.legend-color.miss {
+	background: #d8e0ec;
+}
+
+.legend-color.ship {
+	background: #b9c4d6;
+}
+
+.legend-color.head {
+	background: #ff6b6b;
+}
+
+.legend-color.reveal {
+	background: #ffd166;
+}
+
+/* ---------- 说明（可折叠） ---------- */
+
+.instructions {
+	max-width: 820px;
+	margin: 0 auto;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 12px;
+	padding: 12px 16px;
+	color: var(--ink-soft);
+	font-size: 0.82rem;
+}
+
+.instructions summary {
+	cursor: pointer;
+	font-weight: 700;
+	color: var(--ink);
+}
+
+.instructions p {
+	margin: 6px 0;
+}
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 760px) {
+	.container {
+		--cell: 34px;
+		padding: 12px 10px 32px;
+	}
+
+	.game-container {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.board-container {
+		width: 100%;
+		max-width: 440px;
+	}
+
+	.pve-header h1 {
+		font-size: 1.4rem;
+	}
+
+	.status {
+		font-size: 0.82rem;
+	}
+
+	.controls button {
+		padding: 8px 12px;
+		font-size: 0.82rem;
+	}
+
+	.settings-card {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.settings-card > div {
+		justify-content: space-between;
+	}
+}
+
+@media (max-width: 420px) {
+	.container {
+		--cell: 27px;
+	}
+
+	.header-cell {
+		font-size: 0.7rem;
+	}
+
+	.legend {
+		gap: 10px;
+		font-size: 0.74rem;
+	}
+}
