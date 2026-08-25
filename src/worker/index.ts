@@ -46,6 +46,9 @@ interface PVPStorageState {
 
 type Result = Record<string, unknown>;
 
+/* 房间闲置自动清理阈值：10 分钟内无任何对局操作或无玩家即清理 */
+const ROOM_IDLE_TTL_MS = 10 * 60 * 1000;
+
 function genToken(): string {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 }
@@ -65,6 +68,25 @@ export class PVPGameRoom extends DurableObject {
     if (state) {
       state.updatedAt = Date.now();
       await this.ctx.storage.put("state", state);
+      // 每次操作都刷新闹钟：仅当超过 ROOM_IDLE_TTL_MS 无对局操作或房间为空时才触发清理
+      await this.ctx.storage.setAlarm(Date.now() + ROOM_IDLE_TTL_MS);
+    }
+  }
+
+  async alarm() {
+    const state = await this.load();
+    if (!state) {
+      // 状态已不存在，确保存储被清理
+      await this.ctx.storage.deleteAll();
+      return;
+    }
+    const idle = Date.now() - state.updatedAt >= ROOM_IDLE_TTL_MS;
+    const empty = !state.p1; // 无人空房：从未有玩家真正加入
+    if (idle || empty) {
+      await this.ctx.storage.deleteAll();
+    } else {
+      // 竞态保护：状态刚被更新但闹钟未刷新，重新续期
+      await this.ctx.storage.setAlarm(Date.now() + ROOM_IDLE_TTL_MS);
     }
   }
 
