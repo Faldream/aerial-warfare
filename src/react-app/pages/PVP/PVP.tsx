@@ -7,7 +7,10 @@ import {
   buildBoardFromPlacements,
   canPlaceShip,
   countPlacementType,
+  getShape,
+  rotateShape,
   type Board,
+  type PVPConfig,
   type PlayerView,
   type ShipPlacement,
   type ShipTypeName,
@@ -42,6 +45,12 @@ export default function PVP() {
   const [currentType, setCurrentType] = useState<ShipTypeName>("large");
   const [rotation, setRotation] = useState(0);
   const [copied, setCopied] = useState(false);
+  // 悬停预览的格子
+  const [hoverCell, setHoverCell] = useState<{ r: number; c: number } | null>(null);
+  // 已选中待删除的飞机（布置项下标），再次点击确认移除
+  const [selectedShipIdx, setSelectedShipIdx] = useState<number | null>(null);
+  // 房主创建房间前的编队配置
+  const [cfg, setCfg] = useState<PVPConfig>({ large: 2, small: 1, cross: 1 });
 
   // 从 URL ?room= 恢复会话
   useEffect(() => {
@@ -82,11 +91,22 @@ export default function PVP() {
     };
   }, [inGame, roomId, playerId]);
 
+  // 错误提示自动消失（3.5 秒），避免一直停留在页面上
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 3500);
+    return () => clearTimeout(t);
+  }, [error]);
+
   const createRoom = async () => {
+    if (cfg.large + cfg.small + cfg.cross < 1) {
+      setError("编队至少需要一架飞机");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const data = await postJSON("/api/pvp/rooms", { name });
+      const data = await postJSON("/api/pvp/rooms", { name, config: cfg });
       if (!data.ok) {
         setError(data.error || "创建房间失败");
         return;
@@ -148,6 +168,7 @@ export default function PVP() {
 
   const doRandom = async () => {
     setPlacements([]);
+    setSelectedShipIdx(null);
     await runAction("/random");
   };
   const doPlace = async () => {
@@ -165,24 +186,61 @@ export default function PVP() {
   };
   const doReset = async () => {
     setPlacements([]);
+    setSelectedShipIdx(null);
     setBombMode(false);
     await runAction("/reset");
   };
 
-  const handlePlaceCell = (r: number, c: number) => {
+  /** 查找占据 (r,c) 格子的布置项下标 */
+  const findPlacementAt = (r: number, c: number) =>
+    placements.findIndex((p) =>
+      getShape(p.type, p.rotation).some(([dx, dy]) => p.row + dx === r && p.col + dy === c),
+    );
+
+  /** 由机头位置反推形状原点：点击/悬停的格子 = 机头所在格 */
+  const headToOrigin = (type: ShipTypeName, rot: number, r: number, c: number) => {
+    const headRel = rotateShape([AIRPLANE_TYPES[type].head], rot)[0];
+    return { row: r - headRel[0], col: c - headRel[1] };
+  };
+
+  /** 当前机型是否已达数量上限 */
+  const currentTypeMax = view
+    ? currentType === "large"
+      ? view.config.large
+      : currentType === "small"
+        ? view.config.small
+        : view.config.cross
+    : 0;
+  const typeFull = view ? countPlacementType(placements, currentType) >= currentTypeMax : false;
+
+  const handleSetupCell = (r: number, c: number) => {
     if (!view || view.gameStarted || view.yourPlaced) return;
+    // 点击已摆放的飞机：第一次选中，再次点击确认移除
+    const idx = findPlacementAt(r, c);
+    if (idx !== -1) {
+      if (selectedShipIdx === idx) {
+        setPlacements((p) => p.filter((_, i) => i !== idx));
+        setSelectedShipIdx(null);
+        setError("");
+      } else {
+        setSelectedShipIdx(idx);
+        setError("");
+      }
+      return;
+    }
+    // 点击空格：取消选中，以该格为机头位置放置当前机型
+    setSelectedShipIdx(null);
+    const { row: orgR, col: orgC } = headToOrigin(currentType, rotation, r, c);
     const board = buildBoardFromPlacements(placements);
-    if (!canPlaceShip(board, currentType, r, c, rotation)) {
+    if (!canPlaceShip(board, currentType, orgR, orgC, rotation)) {
       setError("无法放置：位置冲突或越界");
       return;
     }
-    const cfg = view.config;
-    const max = currentType === "large" ? cfg.large : currentType === "small" ? cfg.small : cfg.cross;
-    if (countPlacementType(placements, currentType) >= max) {
+    if (typeFull) {
       setError("该机型数量已达上限");
       return;
     }
-    setPlacements((p) => [...p, { type: currentType, row: r, col: c, rotation }]);
+    setPlacements((p) => [...p, { type: currentType, row: orgR, col: orgC, rotation }]);
     setError("");
   };
 
@@ -213,6 +271,101 @@ export default function PVP() {
     } else {
       doAttack(r, c);
     }
+  };
+
+  /** 布置阶段专用棋盘：悬停预览 + 点击放置/删除 */
+  const renderSetupGrid = () => {
+    const board = buildBoardFromPlacements(placements);
+    // 格子 -> 布置项下标（用于点击删除）
+    const occupied = new Map<string, number>();
+    placements.forEach((p, idx) => {
+      for (const [dx, dy] of getShape(p.type, p.rotation)) {
+        occupied.set(`${p.row + dx},${p.col + dy}`, idx);
+      }
+    });
+    // 悬停预览：机头对准鼠标所在格，机身按旋转反推（已达上限时不再预览）
+    const previewCells = new Set<string>();
+    let previewHead = "";
+    let previewValid = false;
+    if (hoverCell && view && !typeFull) {
+      const { row: orgR, col: orgC } = headToOrigin(currentType, rotation, hoverCell.r, hoverCell.c);
+      previewValid = canPlaceShip(board, currentType, orgR, orgC, rotation);
+      const shape = getShape(currentType, rotation);
+      for (const [dx, dy] of shape) previewCells.add(`${orgR + dx},${orgC + dy}`);
+      previewHead = `${hoverCell.r},${hoverCell.c}`;
+    }
+    // 悬停到已摆放的飞机上：轻微高亮整机，提示可选中删除
+    const removeCells = new Set<string>();
+    if (hoverCell) {
+      const idx = occupied.get(`${hoverCell.r},${hoverCell.c}`);
+      if (idx !== undefined) {
+        const p = placements[idx];
+        for (const [dx, dy] of getShape(p.type, p.rotation)) {
+          removeCells.add(`${p.row + dx},${p.col + dy}`);
+        }
+      }
+    }
+    // 已选中的飞机：持续高亮，等待再次点击确认移除
+    const selectedCells = new Set<string>();
+    if (selectedShipIdx !== null && selectedShipIdx < placements.length) {
+      const p = placements[selectedShipIdx];
+      for (const [dx, dy] of getShape(p.type, p.rotation)) {
+        selectedCells.add(`${p.row + dx},${p.col + dy}`);
+      }
+    }
+    return (
+      <table className="board" onMouseLeave={() => setHoverCell(null)}>
+        <thead>
+          <tr>
+            <td className="header-cell" />
+            {COLS.map((col) => (
+              <td key={col} className="header-cell">
+                {col}
+              </td>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {board.map((rowArr, i) => (
+            <tr key={i}>
+              <td className="header-cell">{ROWS[i]}</td>
+              {rowArr.map((_, j) => {
+                const key = `${i},${j}`;
+                const val = board[i][j];
+                const cls = ["cell", "clickable"];
+                let content = "";
+                if (val === "ship") cls.push("ship");
+                else if (val === "head") {
+                  cls.push("head");
+                  content = "*";
+                }
+                if (selectedCells.has(key)) {
+                  cls.push("remove-selected");
+                } else if (removeCells.has(key)) {
+                  cls.push("remove-preview");
+                } else if (previewCells.has(key)) {
+                  cls.push(previewValid ? "preview" : "preview-invalid");
+                  if (key === previewHead) {
+                    cls.push("preview-head");
+                    content = "*";
+                  }
+                }
+                return (
+                  <td
+                    key={j}
+                    className={cls.join(" ")}
+                    onMouseEnter={() => setHoverCell({ r: i, c: j })}
+                    onClick={() => handleSetupCell(i, j)}
+                  >
+                    {content}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
   };
 
   const renderGrid = (
@@ -336,6 +489,34 @@ export default function PVP() {
             />
           </div>
 
+          <div className="config-picker">
+            <div className="config-picker-title">编队配置（创建房间后生效）</div>
+            <div className="steppers">
+              {(["large", "small", "cross"] as ShipTypeName[]).map((t) => (
+                <div className="stepper" key={t}>
+                  <span className="stepper-name">{AIRPLANE_TYPES[t].name}</span>
+                  <div className="stepper-ctrl">
+                    <button
+                      onClick={() => setCfg((c) => ({ ...c, [t]: Math.max(0, c[t] - 1) }))}
+                      disabled={cfg[t] <= 0}
+                      aria-label={`减少${AIRPLANE_TYPES[t].name}`}
+                    >
+                      −
+                    </button>
+                    <span className="stepper-num">{cfg[t]}</span>
+                    <button
+                      onClick={() => setCfg((c) => ({ ...c, [t]: Math.min(4, c[t] + 1) }))}
+                      disabled={cfg[t] >= 4}
+                      aria-label={`增加${AIRPLANE_TYPES[t].name}`}
+                    >
+                      ＋
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <button className="primary-btn" disabled={loading} onClick={createRoom}>
             {loading ? "处理中…" : "创建房间"}
           </button>
@@ -358,7 +539,12 @@ export default function PVP() {
             加入房间
           </button>
 
-          {error && <div className="error-msg">{error}</div>}
+          {error && (
+            <div className="error-msg" onClick={() => setError("")} role="alert">
+              {error}
+              <span className="error-close">✕</span>
+            </div>
+          )}
 
           <Link to="/" className="pvp-back">
             返回主页
@@ -377,7 +563,12 @@ export default function PVP() {
             </button>
           </div>
 
-          {error && <div className="error-msg">{error}</div>}
+          {error && (
+            <div className="error-msg" onClick={() => setError("")} role="alert">
+              {error}
+              <span className="error-close">✕</span>
+            </div>
+          )}
 
           {/* 布置阶段 */}
           {!view.gameStarted && (
@@ -420,13 +611,35 @@ export default function PVP() {
                     </div>
                     <div className="placement-actions">
                       <button onClick={doRandom}>随机布置</button>
-                      <button onClick={() => setPlacements([])}>清空</button>
+                      <button
+                        onClick={() => {
+                          setPlacements([]);
+                          setSelectedShipIdx(null);
+                        }}
+                      >
+                        清空
+                      </button>
                       <button className="primary-btn" onClick={doPlace}>
                         提交布置
                       </button>
                     </div>
                   </div>
-                  <div className="board-note">点击下方棋盘放置 {AIRPLANE_TYPES[currentType].name}</div>
+                  {selectedShipIdx !== null && selectedShipIdx < placements.length && (
+                    <div className="remove-banner" role="alert">
+                      <span className="remove-banner-icon">✕</span>
+                      <span className="remove-banner-text">
+                        已选中飞机 · 再次点击它确认移除
+                      </span>
+                      <button onClick={() => setSelectedShipIdx(null)}>取消</button>
+                    </div>
+                  )}
+                  <div className="board-note">
+                    {typeFull
+                      ? `${AIRPLANE_TYPES[currentType].name}已达数量上限：请切换机型，或点击已摆放的飞机两次将其移除`
+                      : selectedShipIdx !== null
+                        ? "再次点击选中的飞机确认移除，点击其他位置取消选中"
+                        : `悬停查看预览（机头跟随鼠标），点击空格将 ${AIRPLANE_TYPES[currentType].name} 机头放置在该格；点击已摆放的飞机可选中`}
+                  </div>
                 </>
               )}
 
@@ -441,12 +654,7 @@ export default function PVP() {
 
               <div className="board-container setup-board">
                 <div className="header">我的棋盘</div>
-                {renderGrid(
-                  view.yourPlaced ? view.yourBoard : buildBoardFromPlacements(placements),
-                  false,
-                  view.yourPlaced ? undefined : handlePlaceCell,
-                  true,
-                )}
+                {view.yourPlaced ? renderGrid(view.yourBoard, false) : renderSetupGrid()}
               </div>
             </div>
           )}

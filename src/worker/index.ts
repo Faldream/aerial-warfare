@@ -53,6 +53,22 @@ function genToken(): string {
   return crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 }
 
+/** 校验房主提交的编队配置：每型 0-4 架，总数至少 1 架，否则回退默认 */
+function sanitizeConfig(raw: unknown): PVPConfig {
+  const src = (raw ?? {}) as Record<string, unknown>;
+  const clamp = (v: unknown, fallback: number) => {
+    const n = Number(v);
+    return Number.isInteger(n) ? Math.min(4, Math.max(0, n)) : fallback;
+  };
+  const cfg: PVPConfig = {
+    large: clamp(src.large, 2),
+    small: clamp(src.small, 1),
+    cross: clamp(src.cross, 1),
+  };
+  if (cfg.large + cfg.small + cfg.cross < 1) return { large: 2, small: 1, cross: 1 };
+  return cfg;
+}
+
 /* ============ 每房间一个 Durable Object，持有权威游戏状态 ============ */
 
 export class PVPGameRoom extends DurableObject {
@@ -165,7 +181,7 @@ export class PVPGameRoom extends DurableObject {
       ready: false,
     };
     state.p2 = null;
-    state.config = { large: 2, small: 1, cross: 1 };
+    state.config = sanitizeConfig(body.config);
     state.gameStarted = false;
     state.gameOver = false;
     state.winner = null;
